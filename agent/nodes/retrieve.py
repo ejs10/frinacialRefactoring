@@ -17,6 +17,7 @@ from functools import lru_cache
 from concurrent.futures import ThreadPoolExecutor
 import hashlib
 
+from agent.state import AgentState
 from langchain.schema import Document
 
 _BASE_DIR = Path(__file__).resolve().parents[2]

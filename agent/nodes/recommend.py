@@ -11,66 +11,67 @@ from typing import Dict, List, Optional
 from agent.state import AgentState
 from langchain_core.documents import Document
 
+
 # 문서 포매팅 유틸리티
 def format_documents(documents: List[Document], max_docs: int = 5) -> str:
-        """
-        문서 리스트를 텍스트로 포매팅
-        
-        Args:
-            documents: 문서 리스트
-            max_docs: 최대 문서 수
-        
-        Returns:
-            포매팅된 텍스트
-        """
-        if not documents:
-            return "관련정보 없음"
+    """
+    문서 리스트를 텍스트로 포매팅
 
-        formatted = []
-        for idx, doc in enumerate(documents[:max_docs], 1): 
-            meta = doc.metadata or {}
+    Args:
+        documents: 문서 리스트
+        max_docs: 최대 문서 수
 
-            label = (
-                 meta.get("scam_type") or 
-                 meta.get("source") or
-                 meta.get("title") or 
-                 f"문서{idx}"
-            )
-            content = doc.page_content.strip()[:200]  # 최대200
-            formatted.append(f"[{label}] {content}")
+    Returns:
+        포매팅된 텍스트
+    """
+    if not documents:
+        return "관련정보 없음"
 
-        return "\n\n".join(formatted)
+    formatted = []
+    for idx, doc in enumerate(documents[:max_docs], 1):
+        meta = doc.metadata or {}
+
+        label = (
+            meta.get("scam_type")
+            or meta.get("source")
+            or meta.get("title")
+            or f"문서{idx}"
+        )
+        content = doc.page_content.strip()[:200]  # 최대200
+        formatted.append(f"[{label}] {content}")
+
+    return "\n\n".join(formatted)
+
 
 def format_pattern_analysis(
-          matched_patterns: List[Dict],
-          risk_level: str,
-          risk_score: int
-)-> str:
-     """
+    matched_patterns: List[Dict], risk_level: str, risk_score: int
+) -> str:
+    """
     패턴 분석 결과 포매팅
-    
+
     Args:
         matched_patterns: 매칭된 패턴
         risk_level: 위험도 레벨
         risk_score: 위험도 점수
-    
+
     Returns:
         포매팅된 텍스트
     """
-     if not matched_patterns:
-          return "매칭된 패턴 없음"
-     
-     lines = [f"위험도: {risk_level} ({risk_score}점)\n"]
+    if not matched_patterns:
+        return "매칭된 패턴 없음"
 
-     lines.append("매칭된 사기유형:")
-     for pattern in matched_patterns[:5]:
-          scam_type = pattern.get("scam_type", "알 수 없음")
-          danger = pattern.get("danger_level", "정보")
-          keywords = pattern.get("matched_patterns", [])
-          
-          kw_str = ", ".join(keywords[:3]) if keywords else "N/A"
-          lines.append(f"- {scam_type} ({danger}): {kw_str}")
-     return "\n".join(lines)
+    lines = [f"위험도: {risk_level} ({risk_score}점)\n"]
+
+    lines.append("매칭된 사기유형:")
+    for pattern in matched_patterns[:5]:
+        scam_type = pattern.get("scam_type", "알 수 없음")
+        danger = pattern.get("danger_level", "정보")
+        keywords = pattern.get("matched_patterns", [])
+
+        kw_str = ", ".join(keywords[:3]) if keywords else "N/A"
+        lines.append(f"- {scam_type} ({danger}): {kw_str}")
+    return "\n".join(lines)
+
 
 # LLM프롬포트
 UNIFIED_SYSTEM_PROMPT = """
@@ -94,18 +95,19 @@ UNIFIED_SYSTEM_PROMPT = """
 정확한 출처 문서를 근거로 답변하되, 의심스러운 경우 신중한 태도를 유지하라.
 """
 
+
 def build_llm_prompt(
-          message: str,
+    message: str,
     sender: Optional[str],
     scam_type: str,
     risk_level: str,
     risk_score: int,
     matched_patterns: List[Dict],
-    similar_cases: List[Document]
+    similar_cases: List[Document],
 ) -> str:
     """
     LLM 프롬프트 구성
-    
+
     Args:
         message: 의심 메시지
         sender: 발신자
@@ -114,23 +116,21 @@ def build_llm_prompt(
         risk_score: 위험도 점수
         matched_patterns: 매칭된 패턴
         similar_cases: 유사 사례
-    
+
     Returns:
         프롬프트 텍스트
     """
 
-    #RAG 문서
+    # RAG 문서
     rag_docs = [
-        doc for doc in similar_cases 
-        if doc.metadata.get("origin") != "pattern_matching"
+        doc for doc in similar_cases if doc.metadata.get("origin") != "pattern_matching"
     ]
-    
+
     # 패턴 문서 (실시간 매칭)
     pattern_docs = [
-        doc for doc in similar_cases 
-        if doc.metadata.get("origin") == "pattern_matching"
+        doc for doc in similar_cases if doc.metadata.get("origin") == "pattern_matching"
     ]
-    
+
     prompt = f"""
 **의심 메시지:**
 {message}
@@ -152,45 +152,42 @@ def build_llm_prompt(
 
 위 정보를 바탕으로 즉시 대응 가이드를 작성하라.
 """
-    
+
     return prompt
+
 
 # LLM호출
 async def generate_with_llm(
-          prompt: str,
-          system_prompt: str = UNIFIED_SYSTEM_PROMPT
+    prompt: str, system_prompt: str = UNIFIED_SYSTEM_PROMPT
 ) -> str:
-     """
+    """
     LLM으로 답변 생성
-    
+
     Args:
         prompt: 사용자 프롬프트
         system_prompt: 시스템 프롬프트
-    
+
     Returns:
         생성된 답변
     """
-     try:
+    try:
         from infrastructure.llm.client import UpstageClient
-        from app.coonfig import settings
+        from app.config import settings
 
-        #LLM 클라이어트 생성
+        # LLM 클라이어트 생성
         llm = UpstageClient(
-            api_key =settings.UPSTAGE_API_KEY,
+            api_key=settings.UPSTAGE_API_KEY,
             model=settings.LLM_MODEL,
-            temperature=settings.LLM_TEMPERATURE
+            temperature=settings.LLM_TEMPERATURE,
         )
 
-        response = await llm.generate(
-             prompt=prompt,
-             system_prompt=system_prompt
-        )
+        response = await llm.generate(prompt=prompt, system_prompt=system_prompt)
 
         return response.strip()
-     
-     except Exception as e:
+
+    except Exception as e:
         print(f"  ⚠️ LLM 호출 실패: {e}")
-        
+
         # 폴백 응답
         return """
 ⚠️ AI 분석 생성 중 오류가 발생했습니다.
@@ -210,27 +207,28 @@ async def generate_with_llm(
 의심되는 메시지는 반드시 전문가와 상담하세요.
 """
 
-#메인 노드 함수
-async def recomment_actions(state: AgentState) -> Dict:
+
+# 메인 노드 함수
+async def recommend_actions(state: AgentState) -> Dict:
     """
     대응 방안 생성 노드
-    
+
     LLM을 사용하여:
     - 종합 분석
     - 대응 방안
     - 신고 방법
-    
+
     Args:
         state: 에이전트 상태
-    
+
     Returns:
         업데이트된 상태
     """
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("💡 [4/4] 대응 방안 생성 중...")
-    print("="*60)
+    print("=" * 60)
 
-    #상태에서 정보 추출
+    # 상태에서 정보 추출
     message = state["message"]
     sender = state.get("sender")
     scam_type = state.get("scam_type")
@@ -244,7 +242,7 @@ async def recomment_actions(state: AgentState) -> Dict:
     print(f"  → 위험도: {risk_level} ({risk_score}점)")
     print(f"  → 사기 여부: {'예' if is_scam else '아니오'}")
 
-    #LLM 프롬포트구성
+    # LLM 프롬포트구성
     prompt = build_llm_prompt(
         message=message,
         sender=sender,
@@ -252,25 +250,18 @@ async def recomment_actions(state: AgentState) -> Dict:
         risk_level=risk_level,
         risk_score=risk_score,
         matched_patterns=matched_patterns,
-        similar_cases=similar_cases
+        similar_cases=similar_cases,
     )
 
     # LLM 호출
     print(f"  → LLM 호출 중...")
-    
+
     analysis = await generate_with_llm(prompt)
-    
+
     print(f"  → 분석 생성 완료 ({len(analysis)}자)")
-    
+
     # 대응 방안은 analysis에 포함되어 있음
     recommendations = analysis
-    
+
     # 상태 업데이트
-    return {
-        "analysis": analysis,
-        "recommendations": recommendations,
-        "completed": True
-    }
-    
-
-
+    return {"analysis": analysis, "recommendations": recommendations, "completed": True}
