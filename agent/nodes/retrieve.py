@@ -18,7 +18,7 @@ from concurrent.futures import ThreadPoolExecutor
 import hashlib
 
 from agent.state import AgentState
-from langchain.schema import Document
+from langchain_core.documents import Document
 
 _BASE_DIR = Path(__file__).resolve().parents[2]
 _PATTERN_FILE = _BASE_DIR / "data" / "scam_defense" / "scam_patterns.json"
@@ -83,9 +83,9 @@ def _clean_cache():
             _QUERY_CACHE.pop(key, None)
 
 
-# ========== 실시간 패턴 분석 (기존로직 - 복붙) ========== #
+# ========== 실시간 패턴 분석  ========== #
 def analyze_realtime_patterns(
-    self, query: str, sender: Optional[str] = None
+    query: str, sender: Optional[str] = None
 ) -> Tuple[List[Document], Dict]:
     """실시간 패턴 분석 (기존 scam_defense.py 로직)
 
@@ -160,7 +160,7 @@ def analyze_realtime_patterns(
                     "source": "실시간패턴",
                     "scam_type": scam_type,
                     "danger_level": danger,
-                    "origin": "pattern_matchinng",
+                    "origin": "pattern_matching",
                 },
             )
         )
@@ -237,20 +237,22 @@ def search_vector_store(query: str, k: int = 5) -> List[Document]:
         유사 문서 리스트
     """
     try:
-        from infrastructure.vector_store.scam_repository import ChromaScamRepository
+        from infrastructure.vector_store.scam_repository import ScamPatternRepository
         from app.config import settings
 
         # 리포지토리 생성
-        repo = ChromaScamRepository(
-            persist_directory=settings.CHROMA_PATH,
-            embedding_api_key=settings.UPSTAGE_API_KEY,
+        repo = ScamPatternRepository(
+            persist_directory=settings.CHROMA_PATH
         )
 
         results = repo.search(query=query, k=k)
         return results
+    except ImportError as e:
+        print(f"  ⚠️ ChromaDB 모듈 임포트 실패: {e}")
+        raise
     except Exception as e:
         print(f"  ⚠️ ChromaDB 검색 실패: {e}")
-        return []
+        raise
 
 
 async def retrieve_similar_cases(state: AgentState) -> Dict:
@@ -287,13 +289,13 @@ async def retrieve_similar_cases(state: AgentState) -> Dict:
         # 결과 수집 (타임아웃 1초)
         try:
             rag_docs = rag_future.result(timeout=1.0)
-        except Exception:
+        except Exception as e:
             print(f"  ⚠️ RAG 검색 실패: {e}")
             rag_docs = []
 
         try:
             pattern_docs, pattern_analysis = pattern_future.result(timeout=2.0)
-        except Exception:
+        except Exception as e:
             print(f"  ⚠️ 패턴 분석 실패: {e}")
             pattern_docs, pattern_analysis = [], {}
     print(f"  → RAG: {len(rag_docs)}개 유사 사례")

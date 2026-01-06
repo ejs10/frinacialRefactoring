@@ -155,10 +155,122 @@ def build_llm_prompt(
 
     return prompt
 
+def generate_fallback_response(
+    scam_type: str,
+    risk_level: str,
+    risk_score: int,
+    is_scam: bool,
+    risk_factors: List[str],
+) -> str:
+    """
+    LLM 실패 시 fallback 응답 생성
+
+    Args:
+        scam_type: 사기 유형
+        risk_level: 위험도 레벨
+        risk_score: 위험도 점수
+        is_scam: 사기 여부
+        risk_factors: 위험 요인
+
+    Returns:
+        구조화된 fallback 응답
+    """
+    # 위험도에 따른 아이콘
+    if risk_level == "매우높음":
+        icon = "🚨"
+        status = "매우 위험"
+    elif risk_level == "높음":
+        icon = "⚠️"
+        status = "위험"
+    elif risk_level == "중간":
+        icon = "⚡"
+        status = "주의 필요"
+    else:
+        icon = "ℹ️"
+        status = "안전"
+    response = f"""
+{icon} **위험도 분석 결과**
+
+**사기 여부:** {'🚨 사기로 판단됨' if is_scam else '✅ 정상으로 판단됨'}
+**사기 유형:** {scam_type}
+**위험도:** {risk_level} ({risk_score}점/100)
+    """
+
+    #위험 요인 표시
+    if risk_factors:
+        response += "**감지된 위험 요인:**\n"
+        for idx, factor in enumerate(risk_factors, 1):
+            response += f"{idx}. {factor}\n"
+
+     # 사기로 판단된 경우
+    if is_scam:
+        response += """
+**🛡️ 즉시 대응 방법**
+
+1. ❌ **절대 돈을 보내지 마세요**
+   - 어떤 명목으로든 입금/송금 금지
+   - "안전계좌" 같은 것은 존재하지 않습니다
+
+2. ❌ **개인정보를 제공하지 마세요**
+   - 계좌번호, 비밀번호, 카드번호 등
+   - 주민등록번호, OTP 인증번호 등
+
+3. ❌ **링크를 클릭하지 마세요**
+   - 의심스러운 URL은 피싱 사이트일 수 있습니다
+
+4. 📞 **발신자 번호 차단**
+   - 추가 연락 차단
+
+5. 📱 **증거 수집 및 신고**
+   - 메시지 스크린샷 저장
+   - 아래 신고처에 즉시 신고
+
+**📞 긴급 신고 연락처**
+
+- **경찰청 사이버안전국:** 국번없이 **182**
+- **금융감독원 불법금융신고센터:** **1332**
+- **한국인터넷진흥원(KISA):** 국번없이 **118**
+- **사이버캅 앱:** 스마트폰 앱 다운로드
+
+**💡 예방 수칙**
+
+✓ 공공기관은 전화로 금융정보를 요구하지 않습니다
+✓ "안전계좌"는 존재하지 않습니다
+✓ 의심되면 공식 홈페이지나 대표번호로 직접 확인하세요
+✓ 급하게 결정하도록 압박하면 의심하세요
+
+"""
+    else:
+        response += """
+**✅ 정상 메시지로 판단**
+
+현재 분석 결과 심각한 위험 징후는 발견되지 않았습니다.
+
+**🛡️ 그래도 주의할 점**
+
+- 의심스러운 점이 있다면 발신 기관에 직접 확인
+- 개인정보나 금융정보 요구 시 신중하게 대응
+- 링크 클릭 전 URL 확인
+
+**📞 확인이 필요한 경우**
+
+- 해당 기관 공식 홈페이지에서 대표번호 확인
+- 직접 전화하여 사실 여부 확인
+
+"""
+
+    response += """
+---
+⚠️ **이 분석은 AI 기반 자동 분석입니다.**
+최종 판단은 전문가와 상담하시기 바랍니다.
+"""
+
+    return response
 
 # LLM호출
 async def generate_with_llm(
-    prompt: str, system_prompt: str = UNIFIED_SYSTEM_PROMPT
+    prompt: str, system_prompt: str = UNIFIED_SYSTEM_PROMPT,
+    max_retries: int =2,
 ) -> str:
     """
     LLM으로 답변 생성

@@ -24,8 +24,8 @@ async def classify_scam_type(state: AgentState) -> Dict:
     print("🔍 [1/4] 사기 유형 분류 중...")
     print("=" * 60)
 
-    massage = state["message"]
-    massage_lower = massage.lower()
+    message = state["message"]
+    message_lower = message.lower()
 
     # 간닪한 키워드 기반 분류
     scam_type = "알수없음"
@@ -33,7 +33,7 @@ async def classify_scam_type(state: AgentState) -> Dict:
 
     # 보이스피싱
     if any(
-        kw in massage_lower
+        kw in message_lower
         for kw in [
             "검찰",
             "경찰",
@@ -52,7 +52,7 @@ async def classify_scam_type(state: AgentState) -> Dict:
 
     # 메신저피싱
     elif any(
-        kw in massage_lower
+        kw in message_lower
         for kw in [
             "엄마",
             "아빠",

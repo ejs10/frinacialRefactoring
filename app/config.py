@@ -114,7 +114,7 @@ def get_settings() -> Settings:
 
 
 # 전역설정
-Settings = get_settings()
+settings = get_settings()
 
 
 # 설정출력

@@ -64,7 +64,7 @@ class UpstageClient:
         # LangChain ChatUpstage 초기화
         self.llm = ChatUpstage(
             model=model,
-            upstage_api=api_key,
+            upstage_api_key=api_key,
             temperature=temperature,
             max_tokens=max_tokens,
         )
