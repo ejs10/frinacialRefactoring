@@ -8,6 +8,8 @@ env/
 venv/
 ENV/
 .venv
+ragAiagent/
+.ragAiagent
 
 # IDE
 .vscode/
@@ -41,4 +43,4 @@ Thumbs.db
 # 기타
 *.bak
 .cache/
-EOF
+

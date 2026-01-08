@@ -254,14 +254,56 @@ def search_vector_store(query: str, k: int = 5) -> List[Document]:
         print(f"  ⚠️ ChromaDB 검색 실패: {e}")
         raise
 
+#웹크롤링
+def search_web_news(query: str, max_count:int = 3)-> List[Document]:
+    """
+    웹에서 최신 사기 뉴스 검색
+    
+    Args:
+        query: 검색 쿼리
+        max_count: 최대 뉴스 개수
+    
+    Returns:
+        뉴스 Document 리스트
+    """
+    try:
+        from agent.nodes.web_crawler import ScamNewsCrawler
+        crawler = ScamNewsCrawler()
+
+        keywords =[]
+        if "보이스피싱" in query or "금융감독원" in query or "검찰" in query:
+            keywords.append("보이스피싱")
+        if "대출" in query:
+            keywords.append("대출사기")
+        if "투자" in query or "코인" in query:
+            keywords.append("투자사기")
+        
+        # 기본 키워드
+        if not keywords:
+            keywords = ["금융사기"]
+
+        all_news = []
+        for keyword in keywords[:2]:
+            news = crawler.crawl_naver_news(keyword, max_count=max_count)
+            all_news.extend(news)
+
+        documents = crawler.convert_to_documents(all_news[:max_count])
+
+        return documents
+    
+    except Exception as e:
+        print(f"  ⚠️ 웹 크롤링 실패: {e}")
+        return []
+
 
 async def retrieve_similar_cases(state: AgentState) -> Dict:
     """
-    유사 사례 검색 노드 (RAG + 패턴 매칭)
+    유사 사례 검색 노드 (RAG + 패턴 매칭 + 웹 크롤링)
 
     병렬 처리:
     - RAG 검색 (ChromaDB)
     - 실시간 패턴 분석 (JSON)
+    - 웹크롤링(naver news)
 
     Args:
         state: 에이전트 상태
@@ -286,6 +328,9 @@ async def retrieve_similar_cases(state: AgentState) -> Dict:
         # 패턴검색
         pattern_future = executor.submit(analyze_realtime_patterns, message, sender)
 
+        #웹크롤링
+        web_future = executor.submit(search_web_news,message, 2)
+
         # 결과 수집 (타임아웃 1초)
         try:
             rag_docs = rag_future.result(timeout=1.0)
@@ -298,8 +343,16 @@ async def retrieve_similar_cases(state: AgentState) -> Dict:
         except Exception as e:
             print(f"  ⚠️ 패턴 분석 실패: {e}")
             pattern_docs, pattern_analysis = [], {}
+
+        try:
+            web_docs = web_future.result(timeout=5.0)
+        except Exception as e:
+            print(f"  ⚠️ 웹 크롤링 실패: {e}")
+            web_docs = []
+
     print(f"  → RAG: {len(rag_docs)}개 유사 사례")
     print(f"  → 패턴: {len(pattern_docs)}개 매칭")
+    print(f"  → 웹: {len(web_docs)}개 최신 뉴스")
 
     # 패턴분석 결과출력
     if pattern_analysis:
