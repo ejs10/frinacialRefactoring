@@ -104,11 +104,6 @@ class Settings(BaseSettings):
 def get_settings() -> Settings:
     """
     설정 싱글톤
-
-    앱 전체에서 동일한 설정 인스턴스 사용
-
-    Returns:
-        Settings 인스턴스
     """
     return Settings()
 
@@ -157,7 +152,6 @@ def print_settings():
 
 
 if __name__ == "__main__":
-    # 테스트
     try:
         print_settings()
         print("✅ 설정 로드 성공!")

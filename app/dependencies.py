@@ -7,6 +7,9 @@ LangGraph 워크플로우를 싱글톤으로 관리
 from functools import lru_cache
 from agent.graph import get_graph
 
+if TYPE_CHECKING:
+    from langgraph.graph.state import CompiledStateGraph
+
 class GraphMamager:
     """
     LangGraph 워크플로우 매니저 (싱글톤)
@@ -14,20 +17,21 @@ class GraphMamager:
     앱 시작 시 한 번만 그래프를 로드하고 재사용
     """
 
-    _instance = None
-    _graph = None
+    _instance: Optional["GraphMamager"] = None
+    _graph: Optional["CompiledStateGraph"] = None
 
-    def __new__(cls):
+    def __new__(cls) -> "GraphMamager" :
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
     
-    def initialize(self):
+    def initialize(self) -> "CompiledStateGraph":
         """그래프 초기화"""
         if self._graph is None:
-            print()
+            from agent.graph import get_graph
+            print("\n🔨 LangGraph 워크플로우 초기화 중...")
             self._graph = get_graph()
-            print()
+            print("LangGraph 워크플로우 준비 완료!\n")
         return self._graph
     
     def get_graph(self):
@@ -43,7 +47,5 @@ graph_manager = GraphMamager()
 def get_graph_instance():
     """
     의존성 주입용 함수
-    
-    FastAPI 엔드포인트에서 사용
     """
     return graph_manager.get_graph()

@@ -95,3 +95,5 @@ class HealthCheckResponse(BaseModel):
     version: str = Field(..., description="API 버전")
     timestamp: str = Field(..., description="현재 시각 (ISO 8601)")
     graph_loaded: bool = Field(..., description="그래프 로드 여부")
+    upstage_configured: bool = Field(default=False, description="Upstage API 설정 여부")
+    langsmith_enabled: bool = Field(default=False, description="LangSmith 활성화 여부")

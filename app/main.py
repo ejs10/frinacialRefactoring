@@ -35,8 +35,6 @@ def setup_langsmith():
         print(f"   프로젝트: {settings.LANGCHAIN_PROJECT}")
     else:
         print("⚠️  LangSmith API key not found - tracing disabled")
-        print("   Add LANGCHAIN_API_KEY to .env to enable tracing\n")
-
 
 # LangSmith 초기화 (FastAPI 앱 생성 전에 실행)
 setup_langsmith()
@@ -44,45 +42,19 @@ setup_langsmith()
 app = FastAPI(
     title=settings.APP_NAME,
     description="""
-    ## 금융 사기 탐지 AI 에이전트 API
-    
+     ## 금융 사기 탐지 AI 에이전트 API
+
     **LangGraph**와 **Upstage Solar**를 활용한 지능형 사기 탐지 시스템
-    
+
     ### 주요 기능
     - 🔍 실시간 메시지 분석
-    - 🤖 AI 기반 위험도 평가  
+    - 🤖 AI 기반 위험도 평가
     - 📊 패턴 매칭 및 유사 사례 검색
     - 💡 맞춤형 대응 방안 제공
-    
-    ### 워크플로우
-```
-    입력 메시지
-      ↓
-    [1] 사기 유형 분류 (키워드 기반)
-      ↓
-    [2] 유사 사례 검색 (RAG + 패턴 매칭)
-      ↓
-    [3] 위험도 분석 (0-100점)
-      ↓
-    [4] 대응 방안 생성 (LLM)
-      ↓
-    최종 결과 반환
-```
-    
-    ### 기술 스택
-    - FastAPI: REST API 서버
-    - LangGraph: 워크플로우 오케스트레이션
-    - Upstage Solar: LLM 모델
-    - ChromaDB: 벡터 데이터베이스
     """,
     version=settings.APP_VERSION,
-    contact={
-        "name": "사기 탐지 AI 에이전트",
-        "url": "https://github.com/yourusername/scam-detection",
-    },
-    license_info={
-        "name":"MIT",
-    })
+    license_info={"name":"MIT"}
+)
 
 #CORS 설정
 app.add_middleware(
@@ -141,6 +113,7 @@ print("="*60)
 
 print("\n[1/2] LangGraph 워크플로우 로드 중...")
 try:
+    from agent.graph import get_graph
     GRAPH = get_graph()
     print("✅ 워크플로우 로드 완료")
 except Exception as e:
