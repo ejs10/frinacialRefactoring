@@ -5,7 +5,7 @@ LangGraph 워크플로우를 싱글톤으로 관리
 """
 
 from functools import lru_cache
-from agent.graph import get_graph
+from typing import Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from langgraph.graph.state import CompiledStateGraph
