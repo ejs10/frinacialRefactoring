@@ -1,6 +1,6 @@
 """사기 탐지 도메인 모델"""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 from typing import List, Optional, Dict, Any
 
@@ -63,25 +63,25 @@ class PatternAnalysisResult:
 class ScamAnalysisResponse:
     """최종 사기 분석 응답"""
     answer: str
-    sources: List[Dict[str, Any]]
-    pattern_analysis: PatternAnalysisult
-    elapsed_time: float
+    sources: List[Dict[str, Any]] = field(default_factory=list)
+    pattern_analysis: Optional[PatternAnalysisResult]
+    elapsed_time: float = 0.0
 
     def to_dict(self) -> Dict[str, Any]:
         return {
             "answer": self.answer,
             "sources": self.sources,
             "pattern_analysis": {
-                "query": self.pattern_analysis.query,
-                "sender": self.pattern_analysis.sender,
+                "query": self.pattern_analysis.query if self.pattern_analysis else None,
+                "sender": self.pattern_analysis.sender if self.pattern_analysis else None,
                 "risk_summary": {
-                    "highest_level": self.pattern_analysis.highest_risk_level,
-                    "score": self.pattern_analysis.risk_score,
-                    "is_high_risk": self.pattern_analysis.is_high_risk,
+                    "highest_level": self.pattern_analysis.highest_risk_level if self.pattern_analysis else None,
+                    "score": self.pattern_analysis.risk_score if self.pattern_analysis else 0,
+                    "is_high_risk": self.pattern_analysis.is_high_risk if self.pattern_analysis else False,
                 },
-                "scam_matches": [p.to_dict() for p in self.pattern_analysis.matched_patterns],
-                "keyword_matches": self.pattern_analysis.matched_keywords,
-                "legitimate_contacts": self.pattern_analysis.legitimate_contacts,
-            },
+                "scam_matches": [p.to_dict() for p in (self.pattern_analysis.matched_patterns if self.pattern_analysis else [])],
+                "keyword_matches": self.pattern_analysis.matched_keywords if self.pattern_analysis else {},
+                "legitimate_contacts": self.pattern_analysis.legitimate_contacts if self.pattern_analysis else [],
+            } if self.pattern_analysis else None,
             "elapsed_time": self.elapsed_time,
         }
