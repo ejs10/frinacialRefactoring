@@ -7,19 +7,17 @@
 3. 비동기 처리
 """
 
-from __future__ import annotations
 from pathlib import Path
-from typing import Optional, List, Tuple
+from typing import Optional, List, Dict
 import hashlib
-import json
+import asyncio
 
 import chromadb
-from chromadb.config import Settings
+from chromadb.config import Settings as ChromaSettings
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
 from langchain_upstage import UpstageEmbeddings
 from functools import lru_cache
-import asyncio
 
 class FastScamRepository:
     """

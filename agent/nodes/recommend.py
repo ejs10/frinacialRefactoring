@@ -7,7 +7,7 @@
 - 기존 scam_defense.py의 _generate_unified_answer() 로직 활용
 """
 
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 from agent.state import AgentState
 from langchain_core.documents import Document
 
@@ -44,7 +44,7 @@ def format_documents(documents: List[Document], max_docs: int = 5) -> str:
 
 
 def format_pattern_analysis(
-    matched_patterns: List[Dict], risk_level: str, risk_score: int
+    matched_patterns: List[Dict[str,Any]], risk_level: str, risk_score: int
 ) -> str:
     """
     패턴 분석 결과 포매팅
@@ -60,7 +60,7 @@ def format_pattern_analysis(
     if not matched_patterns:
         return "매칭된 패턴 없음"
 
-    lines = [f"위험도: {risk_level} ({risk_score}점)\n"]
+    lines: List[str] = [f"위험도: {risk_level} ({risk_score}점)\n"]
 
     lines.append("매칭된 사기유형:")
     for pattern in matched_patterns[:5]:
@@ -102,7 +102,7 @@ def build_llm_prompt(
     scam_type: str,
     risk_level: str,
     risk_score: int,
-    matched_patterns: List[Dict],
+    matched_patterns: List[Dict[str, Any]],
     similar_cases: List[Document],
 ) -> str:
     """
@@ -321,7 +321,7 @@ async def generate_with_llm(
 
 
 # 메인 노드 함수
-async def recommend_actions(state: AgentState) -> Dict:
+async def recommend_actions(state: AgentState) -> Dict[str, Any]:
     """
     대응 방안 생성 노드
 
@@ -369,6 +369,16 @@ async def recommend_actions(state: AgentState) -> Dict:
     print(f"  → LLM 호출 중...")
 
     analysis = await generate_with_llm(prompt)
+
+    if not analysis:
+        print("  → LLM 실패, fallback 사용")
+        analysis = generate_fallback_response(
+            scam_type=scam_type,
+            risk_level=risk_level,
+            risk_score=risk_score,
+            is_scam=is_scam,
+            risk_factors=risk_factors,
+        )
 
     print(f"  → 분석 생성 완료 ({len(analysis)}자)")
 

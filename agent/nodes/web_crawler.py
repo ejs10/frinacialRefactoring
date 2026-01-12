@@ -9,9 +9,9 @@
 
 import requests
 from bs4 import BeautifulSoup
-from typing import List, Dict, Optional
+from typing import List, Dict, Any, Optional
 import time
-from datetime import datetime, timedelta
+from datetime import datetime
 from langchain_core.documents import Document
 
 class ScamNewsCrawler:
@@ -44,7 +44,7 @@ class ScamNewsCrawler:
             response.raise_for_status()
             soup = BeautifulSoup(response.text,'html.parser')
 
-            news_list = []
+            news_list: List[Dict[str,Any]] = []
             # 뉴스 아이템 추출
             for idx, item in enumerate(soup.select('.news_area'), 1):
                 if idx > max_count:
@@ -95,9 +95,9 @@ class ScamNewsCrawler:
         
     def crawl_multiple_keywords(
         self,
-        keywords: List[str] = None,
+        keywords: Optional[List[str]] = None,
         max_per_keyword: int = 5
-    ) -> List[Dict]:
+    ) -> List[Dict[str, Any]]:
         """
         여러 키워드로 크롤링
         
@@ -125,7 +125,7 @@ class ScamNewsCrawler:
             time.sleep(1)
 
         return all_news
-    def convert_to_decuments(self, news_list: List[Dict]) -> List[Document]:
+    def convert_to_decuments(self, news_list: List[Dict[str,Any]]) -> List[Document]:
         """
         뉴스를 Document로 변환
         

@@ -17,7 +17,7 @@ from agent.nodes.web_crawler import ScamNewsCrawler
 from infrastructure.vector_store.scam_repository import FastScamRepository
 from datetime import datetime
 
-def update_vectorstore_with_web_data():
+def update_vectorstore_with_web_data() -> bool:
     """
     웹 크롤링 데이터로 벡터 DB 업데이트
     """

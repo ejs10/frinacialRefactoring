@@ -12,6 +12,7 @@ import json
 import sys
 from pathlib import Path
 from datetime import datetime
+from typing import Dict, List, Any, Optional
 
 PRPJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PRPJECT_ROOT))
@@ -20,7 +21,7 @@ from agent.graph import get_graph
 from agent.state import AgentState
 from agent.nodes.web_crawler import ScamNewsCrawler
 
-async def analyze_news(graph, news_item: dict, index: int):
+async def analyze_news(graph, news_item: Dict[str, Any], index: int) -> Optional[Dict[str, Any]]:
     """뉴스 분석"""
     print(f"\n[{index}] 분석 중: {news_item['title'][:50]}...")
 
@@ -83,7 +84,7 @@ async def main():
     
     # Step 3: 분석
     print("\n[Step 3/3] 뉴스 분석 중...")
-    results = []
+    results: List[Dict[str, Any]] = []
 
     for idx, news in enumerate(news_list[:10], 1):
         result = await analyze_news(graph, news, idx)

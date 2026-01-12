@@ -8,6 +8,7 @@ import asyncio
 import time
 from pathlib import Path
 import sys
+from typing import List, Tuple, Dict, Any
 
 # 프로젝트 루트를 경로에 추가
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -41,7 +42,7 @@ TEST_CASES = [
 # ========== 테스트 실행 함수 ========== #
 
 
-async def test_single_case(graph, test_case: dict, case_num: int):
+async def test_single_case(graph, test_case: Dict[str, Any], case_num: int):
     """
     단일 테스트 케이스 실행
 
@@ -83,7 +84,6 @@ async def test_single_case(graph, test_case: dict, case_num: int):
         result = await graph.ainvoke(initial_state)
         elapsed = time.time() - start_time
 
-        # 결과 출력
         print("\n" + "=" * 80)
         print("✅ 분석 완료")
         print("=" * 80)
@@ -92,12 +92,8 @@ async def test_single_case(graph, test_case: dict, case_num: int):
 
         print(f"\n📊 분석 결과:")
         print(f"   사기 유형: {result.get('scam_type', 'N/A')}")
-        print(
-            f"   위험도: {result.get('risk_level', 'N/A')} ({result.get('risk_score', 0)}점)"
-        )
-        print(
-            f"   사기 여부: {'🚨 예 (사기)' if result.get('is_scam') else '✅ 아니오 (정상)'}"
-        )
+        print(f"   위험도: {result.get('risk_level', 'N/A')} ({result.get('risk_score', 0)}점)")
+        print(f"   사기 여부: {'🚨 예 (사기)' if result.get('is_scam') else '✅ 아니오 (정상)'}")
 
         if result.get("risk_factors"):
             print(f"\n🔍 위험 요인:")
@@ -107,7 +103,6 @@ async def test_single_case(graph, test_case: dict, case_num: int):
         print(f"\n💡 AI 분석:")
         print("-" * 80)
         analysis = result.get("analysis", "분석 결과 없음")
-        # 길이 제한 (너무 길면 앞부분만)
         if len(analysis) > 500:
             print(analysis[:500] + "\n... (이하 생략)")
         else:
@@ -122,20 +117,17 @@ async def test_single_case(graph, test_case: dict, case_num: int):
         print(f"   {type(e).__name__}: {e}")
 
         import traceback
-
-        print("\n스택 트레이스:")
         traceback.print_exc()
 
         return False
 
 
-async def run_all_tests():
+async def run_all_tests() -> None:
     """모든 테스트 케이스 실행"""
     print("\n" + "🎯" * 40)
     print("사기 탐지 LangGraph 워크플로우 테스트")
     print("🎯" * 40)
 
-    # 그래프 로드
     print("\n[1/3] LangGraph 워크플로우 로드 중...")
     try:
         graph = get_graph()
@@ -144,19 +136,15 @@ async def run_all_tests():
         print(f"❌ 워크플로우 로드 실패: {e}")
         return
 
-    # 테스트 실행
     print(f"\n[2/3] 테스트 케이스 실행 ({len(TEST_CASES)}개)")
 
-    results = []
+    results: List[Tuple[str, bool]] = []
     for idx, test_case in enumerate(TEST_CASES, 1):
         success = await test_single_case(graph, test_case, idx)
         results.append((test_case["name"], success))
-
-        # 케이스 간 간격
         if idx < len(TEST_CASES):
             await asyncio.sleep(1)
 
-    # 결과 요약
     print("\n" + "=" * 80)
     print("[3/3] 테스트 결과 요약")
     print("=" * 80)
@@ -169,9 +157,7 @@ async def run_all_tests():
         print(f"{idx}. {name}: {status}")
 
     print("\n" + "=" * 80)
-    print(
-        f"총 {total_count}개 중 {success_count}개 성공 ({success_count/total_count*100:.0f}%)"
-    )
+    print(f"총 {total_count}개 중 {success_count}개 성공 ({success_count / total_count * 100:.0f}%)")
     print("=" * 80)
 
     if success_count == total_count:
@@ -180,10 +166,7 @@ async def run_all_tests():
         print(f"\n⚠️  {total_count - success_count}개 테스트 실패")
 
 
-# ========== 메인 ========== #
-
-
-def main():
+def main() -> int:
     """메인 함수"""
     try:
         asyncio.run(run_all_tests())
@@ -192,13 +175,10 @@ def main():
     except Exception as e:
         print(f"\n\n❌ 테스트 실패: {e}")
         import traceback
-
         traceback.print_exc()
         return 1
-
     return 0
 
 
 if __name__ == "__main__":
-    exit_code = main()
-    sys.exit(exit_code)
+    sys.exit(main())

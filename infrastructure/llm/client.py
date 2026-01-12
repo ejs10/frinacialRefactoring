@@ -9,10 +9,10 @@ Upstage LLM 클라이언트
 """
 
 import asyncio
-from typing import Optional
+from typing import Optional, List
 
 from langchain_upstage import ChatUpstage
-from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_core.messages import HumanMessage, SystemMessage, BaseMessage
 
 
 class UpstageClient:
@@ -43,7 +43,7 @@ class UpstageClient:
         temperature: float = 0.1,
         max_tokens: int = 2000,
         timeout: int = 25,
-    ):
+    ) -> None:
         """
         초기화
 
@@ -95,7 +95,7 @@ class UpstageClient:
             )
         """
         # 메시지 구성
-        messages = []
+        messages: List[BaseMessage] = []
 
         if system_prompt:
             messages.append(SystemMessage(content=system_prompt))
@@ -135,7 +135,7 @@ class UpstageClient:
         Returns:
             생성된 텍스트
         """
-        messages = []
+        messages: List[BaseException] = []
 
         if system_prompt:
             messages.append(SystemMessage(content=system_prompt))
@@ -195,16 +195,14 @@ def create_llm_client(
     return UpstageClient(
         api_key=api_key or settings.UPSTAGE_API_KEY,
         model=model or settings.LLM_MODEL,
-        temperature=(
-            temperature if temperature is not None else settings.LLM_TEMPERATURE
-        ),
+        temperature=temperature if temperature is not None else settings.LLM_TEMPERATURE,
         max_tokens=max_tokens or settings.LLM_MAX_TOKENS,
         timeout=timeout or settings.LLM_TIMEOUT,
     )
 
 
 # 테스트 코드
-async def _test_client():
+async def _test_client() -> None:
     """클라이언트 테스트"""
     print("\n" + "=" * 60)
     print("Upstage LLM 클라이언트 테스트")
