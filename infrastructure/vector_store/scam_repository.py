@@ -19,6 +19,62 @@ from langchain_core.documents import Document
 from langchain_upstage import UpstageEmbeddings
 from functools import lru_cache
 
+
+class ScamPatternRepository:
+    """
+    사기 패턴 검색 리포지토리 (기본 버전)
+    """
+    def __init__(
+        self,
+        collection_name: str = "scam_defense",
+        persist_directory: Optional[str] = None,
+    ) -> None:
+        self.collection_name = collection_name
+
+        if persist_directory:
+            self.persist_directory = Path(persist_directory)
+        else:
+            self.persist_directory = Path("data/chroma_scam_defense")
+
+        self.persist_directory.mkdir(parents=True, exist_ok=True)
+
+        from app.config import settings
+
+        self.embeddings = UpstageEmbeddings(
+            api_key=settings.UPSTAGE_API_KEY,
+            model="solar-embedding-1-large"
+        )
+
+        self.client = chromadb.PersistentClient(
+            path=str(self.persist_directory.absolute()),
+            settings=ChromaSettings(anonymized_telemetry=False),
+        )
+
+        try:
+            self.collection = self.client.get_or_create_collection(self.collection_name)
+            print(f"[INFO] 컬렉션 로드: {self.collection_name} ({self.collection.count()}개 문서)")
+        except Exception as e:
+            print(f"[WARNING] 컬렉션 생성/로드: {e}")
+            self.collection = self.client.create_collection(self.collection_name)
+
+        self.vectorstore = Chroma(
+            client=self.client,
+            collection_name=self.collection_name,
+            embedding_function=self.embeddings,
+        )
+    def search(self, query: str, k: int = 5)-> List[Document]:
+        """유사 문서 검색"""
+        try:
+            results = self.vectorstore.similarity_search(query, k=k)
+            return results
+        except Exception as e:
+            print(f"  ⚠️ 검색 실패: {e}")
+            return []
+    def add_documents(self, documents: List[Document]) -> None:
+        """문서 추가"""
+        self.vectorstore.add_documents(documents)
+
+
 class FastScamRepository:
     """
     고속 사기 패턴 검색 리포지토리
@@ -33,7 +89,7 @@ class FastScamRepository:
         self,
         collection_name: str = "scam_defense",
         persist_directory: Optional[str] = None,
-        batch_size: int = 100):
+        batch_size: int = 100) -> None:
         self.collection_name = collection_name
         self.batch_size = batch_size
 
@@ -53,23 +109,24 @@ class FastScamRepository:
         # ChromaDB 클라이언트
         self.client = chromadb.PersistentClient(
             path=str(self.persist_directory.absolute()),
-            settings=Settings(anonymized_telemetry=False)
+            settings=ChromaSettings(anonymized_telemetry=False)
         )
         
         # 컬렉션 로드
         try:
-            self.collection = self.client.get_collection(self.collection_name)
+            self.collection = self.client.get_or_create_collection(self.collection_name)
             print(f"[INFO] 컬렉션 로드: {self.collection_name} ({self.collection.count()}개 문서)")
         except Exception as e:
-            raise RuntimeError(f"컬렉션 로드 실패: {e}")
-        
+            print(f"[WARNING] 컬렉션 생성/로드: {e}")
+            self.collection = self.client.create_collection(self.collection_name)
+
         self.vectorstore = Chroma(
             client=self.client,
             collection_name=self.collection_name,
             embedding_function=self.embeddings,
         )
 
-        self._embedding_cache = {}
+        self._embedding_cache: Dict[str, List[Document]] = {}
 
     @lru_cache(maxsize=1000)
     def _get_cache_key(self, text: str) -> str:
@@ -99,12 +156,15 @@ class FastScamRepository:
             if cache_key in self._embedding_cache:
                 print(f"  ✓ 캐시에서 로드")
                 return self._embedding_cache[cache_key][:k]
-            
-        results = self.vectorstore.similarity_search(query, k=k)
 
-        if use_cache:
-            self._embedding_cache[cache_key] = results
-        return results
+        try:    
+            results = self.vectorstore.similarity_search(query, k=k)
+            if use_cache:
+                self._embedding_cache[cache_key] = results
+            return results
+        except Exception as e:
+            print(f"  ⚠️ 검색 실패: {e}")
+            return []
     
     async def search_async(
         self,
