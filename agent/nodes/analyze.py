@@ -8,8 +8,12 @@
 - 사기 여부 판단
 """
 
+import time
+from datetime import datetime
 from typing import Dict, List
 from agent.state import AgentState
+
+NODE_NAME = "analyze"
 
 # 위험도 계산
 _DANGER_LEVEL_SCORE = {
