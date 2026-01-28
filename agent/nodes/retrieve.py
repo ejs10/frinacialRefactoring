@@ -10,7 +10,6 @@
 """
 
 import json
-import asyncio
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 from functools import lru_cache
@@ -33,7 +32,6 @@ _DANGER_LEVEL_ORDER = {
     "낮음": 1,
     "정보": 0,
 }
-
 
 # ========== 유틸리티 함수 ========== #
 @lru_cache(maxsize=1)
@@ -267,7 +265,7 @@ def search_web_news(query: str, max_count:int = 3)-> List[Document]:
         뉴스 Document 리스트
     """
     try:
-        from agent.nodes.web_crawler import ScamNewsCrawler
+        from scripts.web_crawler import ScamNewsCrawler
         crawler = ScamNewsCrawler()
 
         keywords =[]

@@ -9,4 +9,5 @@ from infrastructure.llm.client import UpstageClient, create_llm_client
 __all__ =[
     "UpstageClient",
     "create_llm_client",
+    "get_llm_client",
 ]

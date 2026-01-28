@@ -30,9 +30,9 @@ class AgentState(TypedDict):
     risk_level: Optional[str]  # 위험도 레벨 (analyze 노드)
     risk_score: Optional[int]  # 위험도 점수 (0-100)
     risk_factors: List[str]  # 위험 요인
+    is_scam: Optional[bool]  # 사기 여부
 
     # 최종 결과
-    is_scam: Optional[bool]  # 사기 여부
     analysis: Optional[str]  # AI 분석 내용
     recommendations: Optional[str]  # 대응 방안 (recommend 노드)
 

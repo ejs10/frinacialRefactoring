@@ -16,8 +16,8 @@ class RiskLevel(Enum):
 class ScamPattern:
     """매칭된 사기 패턴"""
     scam_type: str
-    danger_lavel: str
-    mathch_keywords: List[str]
+    danger_level: str
+    matched_keywords: List[str]
     confidence_score: float = 0.0
 
     def to_dict(self) -> Dict[str, Any]:

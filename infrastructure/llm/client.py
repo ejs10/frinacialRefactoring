@@ -135,7 +135,7 @@ class UpstageClient:
         Returns:
             생성된 텍스트
         """
-        messages: List[BaseException] = []
+        messages: List[BaseMessage] = []
 
         if system_prompt:
             messages.append(SystemMessage(content=system_prompt))
@@ -198,6 +198,21 @@ def create_llm_client(
         temperature=temperature if temperature is not None else settings.LLM_TEMPERATURE,
         max_tokens=max_tokens or settings.LLM_MAX_TOKENS,
         timeout=timeout or settings.LLM_TIMEOUT,
+    )
+
+def get_llm_client() -> ChatUpstage:
+    """
+    전역 LLM 클라이언트 싱글톤 반환
+
+    Returns:
+        ChatUpstage 인스턴스
+    """
+    from app.config import settings
+
+    return ChatUpstage(
+        model=settings.LLM_MODEL,
+        upstage_api_key=settings.UPSTAGE_API_KEY,
+        temperature=settings.LLM_TEMPERATURE,
     )
 
 
