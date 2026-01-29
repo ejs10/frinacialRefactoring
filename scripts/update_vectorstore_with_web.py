@@ -13,7 +13,7 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from agent.nodes.web_crawler import ScamNewsCrawler
+from scripts.web_crawler import ScamNewsCrawler
 from infrastructure.vector_store.scam_repository import FastScamRepository
 from datetime import datetime
 

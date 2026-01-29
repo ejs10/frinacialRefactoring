@@ -55,17 +55,17 @@ def create_scam_detection_graph() -> StateGraph:
 # 전역 그래프를 인스턴스
 
 # 앱 시작 시 한번만 생성하는 함수
-scam_detection_graph = None
+_scam_detection_graph = None
 
 
 def get_graph():
     """그래프 싱글톤"""
-    global scam_detection_graph
-    if scam_detection_graph is None:
+    global _scam_detection_graph
+    if _scam_detection_graph is None:
         print("🔨 LangGraph 워크플로우 생성 중...")
-        scam_detection_graph = create_scam_detection_graph()
+        _scam_detection_graph = create_scam_detection_graph()
         print("✅ LangGraph 워크플로우 준비 완료!")
-    return scam_detection_graph
+    return _scam_detection_graph
 
 
 if __name__ == "__main__":
