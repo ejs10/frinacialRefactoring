@@ -19,7 +19,7 @@ sys.path.insert(0, str(PRPJECT_ROOT))
 
 from agent.graph import get_graph
 from agent.state import AgentState
-from agent.nodes.web_crawler import ScamNewsCrawler
+from scripts.web_crawler import ScamNewsCrawler
 
 async def analyze_news(graph, news_item: Dict[str, Any], index: int) -> Optional[Dict[str, Any]]:
     """뉴스 분석"""

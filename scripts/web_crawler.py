@@ -24,7 +24,7 @@ class ScamNewsCrawler:
         self,
         keyword: str = "보이스피싱",
         max_count: int = 10
-    ) -> List[Dict]:
+    ) -> List[Dict[str, Any]]:
         """
         네이버 뉴스 크롤링
         

@@ -62,7 +62,7 @@ class ScamPatternRepository:
             collection_name=self.collection_name,
             embedding_function=self.embeddings,
         )
-    def search(self, query: str, k: int = 5)-> List[Document]:
+    def search(self, query: str, k: int = 5) -> List[Document]:
         """유사 문서 검색"""
         try:
             results = self.vectorstore.similarity_search(query, k=k)
@@ -98,6 +98,8 @@ class FastScamRepository:
             self.persist_directory = Path(persist_directory)
         else:
             self.persist_directory = Path("data/chroma_scam_defense")
+
+        self.persist_directory.mkdir(parents=True, exist_ok=True)
 
         from app.config import settings
 
