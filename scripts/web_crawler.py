@@ -125,7 +125,7 @@ class ScamNewsCrawler:
             time.sleep(1)
 
         return all_news
-    def convert_to_decuments(self, news_list: List[Dict[str,Any]]) -> List[Document]:
+    def convert_to_documents(self, news_list: List[Dict[str,Any]]) -> List[Document]:
         """
         뉴스를 Document로 변환
         

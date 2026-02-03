@@ -37,7 +37,7 @@ class GraphMamager:
     def get_graph(self):
         """그래프 반환"""
         if self._graph is None:
-            return self.initialize
+            return self.initialize()
         return self._graph
     
 #전역 진스턴스
