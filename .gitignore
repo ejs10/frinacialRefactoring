@@ -44,3 +44,8 @@ Thumbs.db
 *.bak
 .cache/
 
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+*.local

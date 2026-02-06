@@ -28,7 +28,7 @@ async def classify_scam_type(state: AgentState) -> Dict:
     message_lower = message.lower()
 
     # 간닪한 키워드 기반 분류
-    scam_type = "알수없음"
+    scam_type = "알 수 없음"
     confidence = 0.5
 
     # 보이스피싱
