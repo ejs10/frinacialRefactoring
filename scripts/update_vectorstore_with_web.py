@@ -37,7 +37,7 @@ def update_vectorstore_with_web_data() -> bool:
     
     # Step 2: Document 변환
     print("\n[Step 2/3] Document 변환 중...")
-    documents = crawler.convert_to_decuments(news_list)
+    documents = crawler.convert_to_documents(news_list)
 
     print(f"✅ {len(documents)}개 Document 생성 완료")
     
