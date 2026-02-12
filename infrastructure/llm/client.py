@@ -17,8 +17,10 @@ from langchain_core.messages import HumanMessage, SystemMessage, BaseMessage
 # Pydantic 모델 rebuild (langchain_upstage의 BaseCache 의존성 해결)
 try:
     ChatUpstage.model_rebuild()
-except Exception:
-    pass  # 이미 빌드된 경우 무시
+    print("✓ ChatUpstage 모델 rebuild 성공")
+except Exception as e:
+    print(f"⚠️ ChatUpstage 모델 rebuild 실패: {e}")
+    # rebuild 실패해도 계속 진행 (이후 사용 시 재시도)
 
 
 class UpstageClient:
@@ -68,6 +70,12 @@ class UpstageClient:
         self.timeout = timeout
 
         # LangChain ChatUpstage 초기화
+        # Pydantic 모델 rebuild (인스턴스 생성 직전에 실행)
+        try:
+            ChatUpstage.model_rebuild()
+        except Exception:
+            pass  # 이미 빌드된 경우 무시
+
         self.llm = ChatUpstage(
             model=model,
             upstage_api_key=api_key,
@@ -214,6 +222,12 @@ def get_llm_client() -> ChatUpstage:
         ChatUpstage 인스턴스
     """
     from app.config import settings
+
+    # Pydantic 모델 rebuild (인스턴스 생성 직전에 실행)
+    try:
+        ChatUpstage.model_rebuild()
+    except Exception:
+        pass  # 이미 빌드된 경우 무시
 
     return ChatUpstage(
         model=settings.LLM_MODEL,
