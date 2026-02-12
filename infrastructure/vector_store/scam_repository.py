@@ -32,8 +32,7 @@ class ScamPatternRepository:
         self.collection_name = collection_name
 
         if persist_directory:
-            self.persist_directory = Path(persist_directory)
-        else:
+            self.persist_directory = Path
             self.persist_directory = Path("data/chroma_scam_defense")
 
         self.persist_directory.mkdir(parents=True, exist_ok=True)

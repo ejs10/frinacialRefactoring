@@ -7,6 +7,8 @@
 - 크롤링 데이터를 Document로 변환
 """
 
+import hashlib
+import json
 import requests
 from bs4 import BeautifulSoup
 from typing import List, Dict, Any, Optional
@@ -92,6 +94,146 @@ class ScamNewsCrawler:
         except Exception as e:
             print(f"  ❌ 크롤링 실패: {e}")
             return []
+        
+    def crawl_fss_alerts(
+        self,
+        max_count: int = 10
+    ) -> List[Dict[str, Any]]:
+        """
+        금융감독원 소비자경보 크롤링
+
+        Args:
+            max_count: 최대 수집 개수
+
+        Returns:
+            뉴스 리스트 (기존 dict 스키마 동일)
+        """
+
+        print(f"\n🏛️ 금융감독원 소비자경보 크롤링 중...")
+
+        url = "https://www.fss.or.kr/fss/bbs/B0000188/list.do?menuNo=200218"
+
+        try:
+            response = requests.get(url, headers=self.headers, timeout=10)
+            response.raise_for_status()
+            soup = BeautifulSoup(response.text, 'html.parser')
+
+            results: List[Dict[str, Any]] = []
+
+            for idx, row in enumerate(soup.select('table tbody tr'), 1):
+                if idx > max_count:
+                    break
+                try:
+                    title_elem = row.select_one('td.tit a, td a')
+                    if not title_elem:
+                        continue
+                    title = title_elem.get_text().strip()
+                    link_href = title_elem.get('href', '')
+                    if link_href and not link_href.startswith('http'):
+                        link_href = "https://www.fss.or.kr" + link_href
+
+                    date_elem = row.select_one('td.date, td:nth-of-type(4)')
+                    date = date_elem.get_text().strip() if date_elem else ""
+
+                    if title:
+                        results.append({
+                            'title': title,
+                            'description': '',
+                            'link': link_href,
+                            'press': '금융감독원',
+                            'date': date,
+                            'source': 'fss_alert',
+                            'keyword': '금융사기',
+                            'crawled_at': datetime.now().isoformat()
+                        })
+                except Exception as e:
+                    print(f"  ⚠️ FSS 파싱 실패: {e}")
+                    continue
+            print(f"  ✅ 금감원 {len(results)}개 수집 완료")
+            return results
+
+        except Exception as e:
+            print(f"  ❌ 금감원 크롤링 실패: {e}")
+            return []
+
+    def crawl_police_cyber(
+        self,
+        max_count: int = 10
+    ) -> List[Dict[str, Any]]:
+        """
+        경찰청 사이버수사국 보이스피싱 공지 크롤링
+
+        Args:
+            max_count: 최대 수집 개수
+
+        Returns:
+            뉴스 리스트 (기존 dict 스키마 동일)
+        """
+        print(f"\n🚔 경찰청 사이버수사국 크롤링 중...")
+
+        url = "https://ecrm.police.go.kr/minwon/bbs/B0000060/list.do"
+
+        try:
+            response = requests.get(url, headers=self.headers, timeout=10)
+            response.raise_for_status()
+            soup = BeautifulSoup(response.text, 'html.parser')
+
+            results: List[Dict[str, Any]] = []
+
+            for idx, row in enumerate(soup.select('table tbody tr, .board_list li'), 1):
+                if idx > max_count:
+                    break
+                try:
+                    title_elem = row.select_one('a')
+                    if not title_elem:
+                        continue
+
+                    title = title_elem.get_text().strip()
+                    link_href = title_elem.get('href', '')
+                    if link_href and not link_href.startswith('http'):
+                        link_href = "https://ecrm.police.go.kr" + link_href
+
+                    date_elem = row.select_one('td.date, td:nth-of-type(4), .date')
+                    date = date_elem.get_text().strip() if date_elem else ""
+
+                    if title:
+                        results.append({
+                            'title': title,
+                            'description': '',
+                            'link': link_href,
+                            'press': '경찰청',
+                            'date': date,
+                            'source': 'police_cyber',
+                            'keyword': '보이스피싱',
+                            'crawled_at': datetime.now().isoformat()
+                        })
+                except Exception as e:
+                    print(f"  ⚠️ 경찰청 파싱 실패: {e}")
+                    continue
+
+            print(f"  ✅ 경찰청 {len(results)}개 수집 완료")
+            return results
+
+        except Exception as e:
+            print(f"  ❌ 경찰청 크롤링 실패: {e}")
+            return []
+    
+    @staticmethod
+    def dedup_by_link(news_list: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """link 기준 중복 제거 (link 없으면 title 해시로 대체)"""
+        seen = set()
+        deduped = []
+        for item in news_list:
+            key = item.get('link') or hashlib.md5(
+                item.get('title', '').encode()
+            ).hexdigest()
+            if key not in seen:
+                seen.add(key)
+                deduped.append(item)
+        removed = len(news_list) - len(deduped)
+        if removed > 0:
+            print(f"  🔄 중복 제거: {removed}개 제거 → {len(deduped)}개 유지")
+        return deduped
         
     def crawl_multiple_keywords(
         self,

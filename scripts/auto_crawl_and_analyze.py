@@ -14,8 +14,8 @@ from pathlib import Path
 from datetime import datetime
 from typing import Dict, List, Any, Optional
 
-PRPJECT_ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(PRPJECT_ROOT))
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(PROJECT_ROOT))
 
 from agent.graph import get_graph
 from agent.state import AgentState
@@ -92,7 +92,7 @@ async def main():
             results.append(result)
         await asyncio.sleep(1)
     
-    output_dir = PRPJECT_ROOT / "data" / "analysis_results"
+    output_dir = PROJECT_ROOT / "data" / "analysis_results"
     output_dir.mkdir(parents=True, exist_ok=True)
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
