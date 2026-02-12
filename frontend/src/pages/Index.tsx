@@ -6,7 +6,6 @@ import { AnalysisCard } from "@/components/AnalysisCard";
 import { RiskLevel } from "@/components/RiskBadge";
 import { AlertCircle, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 interface AnalysisResult {
@@ -39,22 +38,38 @@ const mapRiskLevel = (level: string): RiskLevel => {
 };
 
 const analyzeMessage = async (message: string, sender: string): Promise<AnalysisResult> => {
-  const { data, error } = await supabase.functions.invoke('analyze-message', {
-    body: { message, sender }
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+
+  const response = await fetch(`${API_BASE_URL}/api/v1/detect`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ message, sender })
   });
 
-  if (error) {
-    console.error("Analysis error:", error);
-    throw new Error(error.message || "분석 중 오류가 발생했습니다.");
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || errorData.error || "분석 중 오류가 발생했습니다.");
   }
 
-  if (data.error) {
-    throw new Error(data.error);
+  const data = await response.json();
+
+  if (!data.success) {
+    throw new Error(data.error || "분석에 실패했습니다.");
   }
 
   return {
-    ...data,
-    riskLevel: mapRiskLevel(data.riskLevel)
+    isScam: data.is_scam,
+    riskLevel: mapRiskLevel(data.risk_level),
+    riskScore: data.risk_score,
+    scamType: data.scam_type,
+    confidence: Math.round(data.confidence * 100),
+    processingTime: `${data.processing_time}초`,
+    riskFactors: data.risk_factors || [],
+    analysis: data.analysis,
+    patternsCount: data.matched_patterns_count || 0,
+    casesCount: data.similar_cases_count || 0,
   };
 };
 

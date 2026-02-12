@@ -20,7 +20,7 @@ from agent.state import AgentState
 from langchain_core.documents import Document
 
 _BASE_DIR = Path(__file__).resolve().parents[2]
-_PATTERN_FILE = _BASE_DIR / "data" / "scam_defense" / "scam_patterns.json"
+_PATTERN_FILE = _BASE_DIR / "data" / "chroma_scam_defense" / "scam_patterns.json"
 _PATTERN_CACHE: Optional[Dict] = None
 _QUERY_CACHE: Dict[str, Tuple] = {}
 _CACHE_SIZE_LIMIT = 100

@@ -47,6 +47,8 @@ def intake_node(state: ScamDefenseState) -> Dict[str, Any]:
     rewritten_query = query
 
     try:
+        from infrastructure.llm.client import get_llm_client
+        
         llm = get_llm_client()
         messages = [
             {"role":"system", "content": REWRITE_SYSTEM_PROMPT},

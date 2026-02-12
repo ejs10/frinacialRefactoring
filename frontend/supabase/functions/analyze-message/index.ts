@@ -5,11 +5,31 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// 기본 응답 구조 (프론트엔드가 기대하는 모든 필드 보장)
+function createDefaultResult(message: string, isError = false) {
+  return {
+    isScam: false,
+    riskLevel: "보통",
+    riskScore: 50,
+    scamType: isError ? "분석 오류" : "분석 불가",
+    confidence: 0,
+    riskFactors: isError 
+      ? ["분석 중 오류가 발생했습니다. 다시 시도해주세요."] 
+      : ["AI 분석 결과를 파싱할 수 없습니다"],
+    analysis: message,
+    patternsCount: 0,
+    casesCount: 0,
+    processingTime: "0초",
+  };
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
+
+  const startTime = Date.now();
 
   try {
     const { message, sender } = await req.json();
@@ -17,6 +37,17 @@ serve(async (req) => {
     
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
+      const result = createDefaultResult("API 키가 설정되지 않았습니다.", true);
+      return new Response(JSON.stringify(result), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (!message || typeof message !== "string" || message.trim().length < 2) {
+      const result = createDefaultResult("분석할 메시지를 입력해주세요.", true);
+      return new Response(JSON.stringify(result), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     console.log("Analyzing message:", message.substring(0, 50) + "...");
@@ -75,13 +106,13 @@ ${sender ? `발신자: ${sender}` : ''}
     if (!response.ok) {
       if (response.status === 429) {
         return new Response(JSON.stringify({ error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." }), {
-          status: 429,
+          status: 200,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       if (response.status === 402) {
         return new Response(JSON.stringify({ error: "서비스 이용 한도를 초과했습니다." }), {
-          status: 402,
+          status: 200,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }

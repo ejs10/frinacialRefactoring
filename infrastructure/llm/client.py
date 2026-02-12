@@ -14,6 +14,12 @@ from typing import Optional, List
 from langchain_upstage import ChatUpstage
 from langchain_core.messages import HumanMessage, SystemMessage, BaseMessage
 
+# Pydantic 모델 rebuild (langchain_upstage의 BaseCache 의존성 해결)
+try:
+    ChatUpstage.model_rebuild()
+except Exception:
+    pass  # 이미 빌드된 경우 무시
+
 
 class UpstageClient:
     """
