@@ -212,14 +212,6 @@ npm run build
 | `LLM_TEMPERATURE` | ❌ | LLM Temperature | `0.1` | `0.5` |
 | `LLM_MAX_TOKENS` | ❌ | LLM 최대 토큰 | `2000` | `3000` |
 | `CHROMA_PATH` | ❌ | ChromaDB 경로 | `data/chroma_scam_defense` | `./chroma` |
-
-### 프론트엔드 (frontend/.env)
-
-| 변수명 | 필수 | 설명 | 예시 |
-|--------|------|------|------|
-| `VITE_SUPABASE_URL` | ❌ | Supabase URL (미사용) | - |
-| `VITE_SUPABASE_PUBLISHABLE_KEY` | ❌ | Supabase Key (미사용) | - |
-
 ---
 
 ## 🔗 주요 API 엔드포인트
@@ -427,93 +419,7 @@ END
 5. 신고 방법 및 연락처
 6. 예방 팁 및 주의사항
 
----
 
-## 🐛 에러 해결 가이드
-
-### 1. `UPSTAGE_API_KEY is required`
-**원인:** 환경 변수에 Upstage API 키가 설정되지 않음
-
-**해결:**
-```bash
-# .env 파일에 추가
-UPSTAGE_API_KEY=your_actual_api_key_here
-```
-
----
-
-### 2. `ChromaDB 검색 실패` 또는 `컬렉션 없음`
-**원인:** ChromaDB 벡터스토어가 초기화되지 않음
-
-**해결:**
-```bash
-# 벡터스토어 초기화
-python scripts/update_vectorstore_with_web.py
-```
-
----
-
-### 3. `AI 에이전트가 초기화 중입니다` (503 에러)
-**원인:** 서버 시작 시 LangGraph 워크플로우 로드 실패
-
-**해결:**
-1. 서버 로그 확인
-2. 환경 변수 확인 (`UPSTAGE_API_KEY`)
-3. 의존성 재설치: `pip install -r requirements.txt`
-
----
-
-### 4. `LLM API 타임아웃`
-**원인:** Upstage API 응답 지연 또는 네트워크 문제
-
-**해결:**
-```bash
-# .env에서 타임아웃 증가
-LLM_TIMEOUT=30
-```
-
----
-
-### 5. `웹 크롤링 실패`
-**원인:** 네이버 뉴스 페이지 구조 변경 또는 접근 제한
-
-**해결:**
-- 웹 크롤링 실패는 무시하고 진행됨 (RAG + 패턴 매칭만으로도 분석 가능)
-- 필요 시 `scripts/web_crawler.py` 수정
-
----
-
-### 6. `invoke vs ainvoke`
-**LangGraph 실행 방법:**
-- **비동기 (FastAPI):** `await GRAPH.ainvoke(state)` ✅
-- **동기 (스크립트):** `GRAPH.invoke(state)` ✅
-
-**주의:** FastAPI 비동기 환경에서는 반드시 `ainvoke` 사용
-
----
-
-### 7. State 키 누락 에러
-**원인:** `AgentState` TypedDict에 정의된 키가 누락됨
-
-**해결:** `app/main.py`에서 초기 상태 생성 시 모든 키 포함:
-```python
-initial_state = {
-    "message": req.message,
-    "sender": req.sender,
-    "scam_type": None,
-    "confidence": None,
-    "similar_cases": [],
-    "matched_patterns": [],
-    "risk_level": None,
-    "risk_score": None,
-    "risk_factors": [],
-    "is_scam": None,
-    "analysis": None,
-    "recommendations": None,
-    "processing_time": None,
-    "completed": False,
-}
-```
 
 ---
 
@@ -559,30 +465,9 @@ python scripts/auto_crawl_and_analyze.py
 ### 5. 프론트엔드 테스트
 ```bash
 cd frontend
-npm run test
+npm run dev
 ```
 
----
-
-## ⚠️ 제한사항 및 TODO
-
-### 현재 제한사항
-1. **domain 레이어 미사용:** `domain/scam_detection/` 폴더 내 파일들이 사용되지 않음 (리팩토링 필요)
-2. **웹 크롤링 의존성:** 네이버 페이지 구조 변경 시 크롤링 실패 가능
-3. **ChromaDB 초기화 필요:** 최초 실행 시 반드시 `update_vectorstore_with_web.py` 실행 필요
-4. **LLM 호출 비용:** Upstage API 사용량에 따라 과금
-5. **키워드 기반 분류:** classify 노드가 LLM 없이 단순 키워드 매칭으로 동작 (정확도 제한적)
-
-### TODO
-- [ ] domain 레이어 통합 또는 제거
-- [ ] classify 노드에 LLM 기반 분류 추가 (정확도 개선)
-- [ ] 실시간 ChromaDB 자동 업데이트 (스케줄러)
-- [ ] 사용자 피드백 수집 기능
-- [ ] 분석 결과 히스토리 저장
-- [ ] 다국어 지원
-- [ ] 모바일 앱 연동
-
----
 
 ## 📝 참고 사항
 
