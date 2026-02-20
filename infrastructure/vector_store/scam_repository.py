@@ -41,7 +41,7 @@ class ScamPatternRepository:
 
         self.embeddings = UpstageEmbeddings(
             api_key=settings.UPSTAGE_API_KEY,
-            model="solar-embedding-1-large"
+            model="solar-embedding-1-large",
         )
 
         self.client = chromadb.PersistentClient(
@@ -104,7 +104,7 @@ class FastScamRepository:
 
         self.embeddings = UpstageEmbeddings(
             api_key=settings.UPSTAGE_API_KEY,
-            model="solar-embedding-1-large"
+            model="solar-embedding-1-large",
         )
 
         # ChromaDB 클라이언트
