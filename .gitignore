@@ -40,6 +40,9 @@ Thumbs.db
 .ipynb_checkpoints
 *.ipynb
 
+chroma_store/
+chroma.sqlite3
+
 # 기타
 *.bak
 .cache/
