@@ -4,12 +4,31 @@ __pycache__/
 *$py.class
 *.so
 .Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+
 env/
 venv/
 ENV/
 .venv
 ragAiagent/
 .ragAiagent
+.env.*
+.claude
 
 # IDE
 .vscode/
@@ -31,6 +50,11 @@ data/processed/*
 # 로그
 *.log
 logs/
+*.sqlite
+*.db
+chroma_store/
+chroma.sqlite3
+
 
 # OS
 .DS_Store
@@ -52,3 +76,11 @@ frontend/node_modules/
 frontend/dist/
 frontend/dist-ssr/
 *.local
+
+# Model files and vectors
+*.pkl
+*.h5
+*.model
+*.bin
+vector_store/
+models/
