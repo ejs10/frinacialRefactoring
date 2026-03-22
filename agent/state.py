@@ -6,6 +6,14 @@ LangGraph 상태 정의
 from typing import TypedDict, List, Optional, Dict, Any
 from langchain_core.documents import Document
 
+#실행정보추적
+class TraceInfo(TypedDict):
+    trace_id: str
+    node_name: str
+    latency_ms: float
+    model_output_summary: Optional[str]
+    errors: List[str]
+
 
 class AgentState(TypedDict):
     """
@@ -17,6 +25,9 @@ class AgentState(TypedDict):
     # 입력
     message: str
     sender: Optional[str]
+
+    #  Intake 정제결과
+    rewritten_query: Optional[str]  # Intake 노드에서 리라이트된 메시지
 
     # 분류 결과
     scam_type: Optional[str]

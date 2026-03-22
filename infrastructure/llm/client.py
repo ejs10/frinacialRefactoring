@@ -82,7 +82,7 @@ class UpstageClient:
             temperature=temperature,
             max_tokens=max_tokens,
         )
-        print(f"✓ Upstage LLM 초기화: {model} (temp={temperature})")
+        
 
     async def generate(
         self, prompt: str, system_prompt: Optional[str] = None, **kwargs
@@ -234,45 +234,3 @@ def get_llm_client() -> ChatUpstage:
         upstage_api_key=settings.UPSTAGE_API_KEY,
         temperature=settings.LLM_TEMPERATURE,
     )
-
-
-# 테스트 코드
-async def _test_client() -> None:
-    """클라이언트 테스트"""
-    print("\n" + "=" * 60)
-    print("Upstage LLM 클라이언트 테스트")
-    print("=" * 60 + "\n")
-
-    # 클라이언트 생성
-    client = create_llm_client()
-    print(f"클라이언트: {client}\n")
-
-    # 테스트 프롬프트
-    system_prompt = "당신은 금융사기 전문가입니다."
-    user_prompt = "보이스피싱이란 무엇인가요? 간단히 설명해주세요."
-
-    print(f"[시스템] {system_prompt}")
-    print(f"[사용자] {user_prompt}\n")
-
-    # 생성
-    print("응답 생성 중...\n")
-
-    try:
-        response = await client.generate(
-            prompt=user_prompt, system_prompt=system_prompt
-        )
-
-        print("=" * 60)
-        print("응답:")
-        print("=" * 60)
-        print(response)
-        print("=" * 60)
-        print("\n✅ 테스트 성공!")
-
-    except Exception as e:
-        print(f"\n❌ 테스트 실패: {e}")
-
-
-if __name__ == "__main__":
-    # 비동기 테스트 실행
-    asyncio.run(_test_client())
